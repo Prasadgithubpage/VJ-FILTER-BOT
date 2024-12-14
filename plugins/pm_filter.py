@@ -365,7 +365,6 @@ async def filter_yearss_cb_handler(client: Client, query: CallbackQuery):
         ])
     else:
         btn = []
-        )
         btn.insert(0, [
             InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}")
         ])
