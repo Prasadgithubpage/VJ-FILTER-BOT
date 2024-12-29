@@ -4,8 +4,15 @@
 
 class script(object):
     START_TXT = """<b><blockquote>ʜᴇʟʟᴏ {}, ᴍʏ ɴᴀᴍᴇ <a href=https://t.me/{}>{}</a></blockquote>
-    
-Hello this is library bot i share files .welcome to the community</b>"""
+
+📚 <u>Features:</u>  
+1️⃣ <i>Type the book name</i> (no author needed), and I'll find audiobooks for you.  
+2️⃣ <i>Access 2000+ audiobooks</i> anytime, anywhere.  
+3️⃣ <i>Request more audiobooks</i> by messaging @Bookmelover.  
+
+⚡ <i>Powered by @library_of_heaven</i>  
+
+✨ <i>Happy Listening!</i> ✨</b>"""
 
     CLONE_START_TXT = """<b><blockquote>ʜᴇʟʟᴏ {}, ᴍʏ ɴᴀᴍᴇ <a href=https://t.me/{}>{}</a></blockquote>
     
