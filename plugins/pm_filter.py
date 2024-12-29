@@ -2612,7 +2612,14 @@ async def auto_filter(client, name, msg, reply_msg, ai_search, spoll=False):
                 if settings["spell_check"]:
                     return await advantage_spell_chok(client, name, msg, reply_msg, ai_search)
                 else:
-                    return await reply_msg.edit_text(f"**⚠️ No File Found For Your Query - {name}**\n**Make Sure Spelling Is Correct.**")
+                    return await reply_msg.edit_text(f"""**⚠️ No Audiobook Found For Your Query - {name}**  
+**Make Sure Your Spelling Is Correct or Try a Different Search Format.**  
+
+**Example:**  
+- Request Format: `Harry Potter`  
+- Avoid Using Special Characters: `':(!,./)`  
+
+🚨 **For more audiobooks, message @Bookmelover.**""")
         else:
             return
     else:
