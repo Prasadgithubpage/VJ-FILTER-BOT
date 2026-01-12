@@ -40,12 +40,16 @@ async def start(client, message):
     if len(message.command) != 2:
         if PREMIUM_AND_REFERAL_MODE:
             buttons = [[
-                 InlineKeyboardButton('📚 REQUEST GROUP', url='https://t.me/bookpdfepub')
-            ]]
-        else:
-            buttons = [[
-                 InlineKeyboardButton('📚 REQUEST GROUP', url='https://t.me/bookpdfepub')
-            ]]
+            InlineKeyboardButton(
+                'Join BUYM',
+                url='https://t.me/Brighten_Up_Your_Mind'
+            )
+        ], [
+            InlineKeyboardButton(
+                'Support us at Insta',
+                url='https://www.instagram.com/brighten_up_your_mind'
+            )
+        ]]
  # No buttons displayed
         if CLONE_MODE == True:
             buttons.append([InlineKeyboardButton('🤖 Cʀᴇᴀᴛᴇ Yᴏᴜʀ Oᴡɴ Cʟᴏɴᴇ Bᴏᴛ 🤖', callback_data='clone')])
@@ -1463,3 +1467,4 @@ async def purge_requests(client, message):
             parse_mode=enums.ParseMode.MARKDOWN,
             disable_web_page_preview=True
         )
+
