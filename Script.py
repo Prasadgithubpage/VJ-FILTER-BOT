@@ -3,17 +3,12 @@
 # Ask Doubt on telegram @KingVJ01
 
 class script(object):
-    START_TXT = """<b><blockquote>ʜᴇʟʟᴏ {}, ᴍʏ ɴᴀᴍᴇ <a href=https://t.me/{}>{}</a></blockquote>
+     START_TXT = """<b>
+Hey my friend {}</b>
 
-📚 <u>Features:</u>  
-1️⃣ <i>Type the book name</i> (no author needed), and I'll find audiobooks for you.  
-2️⃣ <i>Access 2000+ audiobooks</i> anytime, anywhere.  
-3️⃣ <i>Request more audiobooks</i> by messaging @Bookmelover.  
-
-⚡ <i>Powered by @library_of_heaven</i>  
-
-✨ <i>Happy Listening!</i> ✨</b>"""
-
+Hey, I am your <b>Book Buddy</b>. ❤️  
+Happy to see you here in your <i>Reading Journey</i>. 📚✨
+"""
     CLONE_START_TXT = """<b><blockquote>ʜᴇʟʟᴏ {}, ᴍʏ ɴᴀᴍᴇ <a href=https://t.me/{}>{}</a></blockquote>
     
 ɪ ᴀᴍ ᴀᴅᴠᴀɴᴄᴇ ᴀɴᴅ ᴘᴏᴡᴇʀғᴜʟʟ ᴀᴜᴛᴏғɪʟᴛᴇʀ ʙᴏᴛ ᴡɪᴛʜ ᴀᴍᴀᴢɪɴɢ ғᴇᴀᴛᴜʀᴇs ᴊᴜsᴛ ᴛʏᴘᴇ ᴡʜᴀᴛ ʏᴏᴜ ᴡᴀɴᴛ ᴛʜᴇɴ sᴇᴇ ᴍʏ ᴘᴏᴡᴇʀ 💘</b>"""
@@ -750,3 +745,4 @@ Example:- /set_caption 📕 File Name: {filename}
 
 
     
+
