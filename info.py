@@ -17,7 +17,7 @@ BOT_TOKEN = environ.get('BOT_TOKEN', "")
 
 
 # This Pictures Is For Start Message Picture, You Can Add Multiple By Giving One Space Between Each.
-PICS = (environ.get('PICS', 'https://i.ibb.co/MC9cC5f/IMG-20241205-185040-352.jpg')).split()
+PICS = (environ.get('PICS', 'https://i.ibb.co/6cPZgxgn/IMG-20260111-232458-624.jpg')).split()
 
 
 # Admins & Users
@@ -88,10 +88,10 @@ PUBLIC_FILE_CHANNEL = environ.get('PUBLIC_FILE_CHANNEL', '') # Public Channel Us
 
 
 # Links
-GRP_LNK = environ.get('GRP_LNK', 'https://t.me/bookpdfepub')
-CHNL_LNK = environ.get('CHNL_LNK', 'https://t.me/library_of_heaven')
-SUPPORT_CHAT = environ.get('SUPPORT_CHAT', 'bookpdfepub') # Support Chat Link Without https:// or @
-OWNER_LNK = environ.get('OWNER_LNK', 'https://t.me/prasadonly')
+GRP_LNK = environ.get('GRP_LNK', 'https://t.me/Discuss_Brighten_Up_Your_Mind')
+CHNL_LNK = environ.get('CHNL_LNK', 'https://t.me/Brighten_Up_Your_Mind')
+SUPPORT_CHAT = environ.get('SUPPORT_CHAT', 'https://t.me/Book_request_BUYM') # Support Chat Link Without https:// or @
+OWNER_LNK = environ.get('OWNER_LNK', 'https://t.me/Jai_shree_krishn1')
 
 # True Or False
 AI_SPELL_CHECK = bool(environ.get('AI_SPELL_CHECK', False))
@@ -196,3 +196,4 @@ else:
 # Don't Remove Credit @VJ_Botz
 # Subscribe YouTube Channel For Amazing Bot @Tech_VJ
 # Ask Doubt on telegram @KingVJ01
+
