@@ -2512,7 +2512,7 @@ async def auto_filter(client, name, msg, reply_msg, ai_search, spoll=False):
         files, offset, total_results = await get_search_results(message.chat.id, search, offset=0, filter=True)
         
         if not files:
-            return  # **SILENT EXIT - NO MESSAGES**
+            return  # SILENT EXIT
         
         settings = await get_settings(message.chat.id)
     else:
@@ -2521,35 +2521,107 @@ async def auto_filter(client, name, msg, reply_msg, ai_search, spoll=False):
         settings = await get_settings(message.chat.id)
         await msg.message.delete()
 
-    # Create buttons (unchanged)
-    pre = 'filep' if settings['file_secure'] else 'file'
+    # Create buttons
+    pre = 'filep' if settings.get('file_secure', False) else 'file'
     key = f"{message.chat.id}-{message.id}"
+    req = message.from_user.id if message.from_user else 0
     FRESH[key] = search
     temp.GETALL[key] = files
     temp.SHORT[message.from_user.id] = message.chat.id
     
-    if settings["button"]:
-        btn = [[InlineKeyboardButton(f"[{get_size(file['file_size'])}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file['file_name'].split()))}", callback_data=f'{pre}#{file["file_id"]}')] for file in files]
+    if settings.get("button", True):
+        btn = [
+            [InlineKeyboardButton(
+                text=f"[{get_size(file['file_size'])}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file['file_name'].split()))}", 
+                callback_data=f'{pre}#{file["file_id"]}'
+            )] for file in files
+        ]
         btn.insert(0, [InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}")])
     else:
         btn = [[InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}")]]
 
-    # Pagination (unchanged)
+    # Pagination
     if offset != "":
         try:
-            if settings['max_btn']:
-                btn.append([InlineKeyboardButton("𝐏𝐀𝐆𝐄", callback_data="pages"), InlineKeyboardButton(f"1/{math.ceil(int(total_results)/10)}",callback_data="pages"), InlineKeyboardButton("𝐍𝐄𝐗𝐓 ➪",callback_data=f"next_{message.from_user.id}_{key}_{offset}")])
+            if settings.get('max_btn', False):
+                btn.append([
+                    InlineKeyboardButton("𝐏𝐀𝐆𝐄", callback_data="pages"), 
+                    InlineKeyboardButton(f"1/{math.ceil(int(total_results)/10)}", callback_data="pages"), 
+                    InlineKeyboardButton("𝐍𝐄𝐗𝐓 ➪", callback_data=f"next_{req}_{key}_{offset}")
+                ])
             else:
-                btn.append([InlineKeyboardButton("𝐏𝐀𝐆𝐄", callback_data="pages"), InlineKeyboardButton(f"1/{math.ceil(int(total_results)/int(MAX_B_TN))}",callback_data="pages"), InlineKeyboardButton("𝐍𝐄𝐗𝐓 ➪",callback_data=f"next_{message.from_user.id}_{key}_{offset}")])
+                btn.append([
+                    InlineKeyboardButton("𝐏𝐀𝐆𝐄", callback_data="pages"), 
+                    InlineKeyboardButton(f"1/{math.ceil(int(total_results)/int(MAX_B_TN))}", callback_data="pages"), 
+                    InlineKeyboardButton("𝐍𝐄𝐗𝐓 ➪", callback_data=f"next_{req}_{key}_{offset}")
+                ])
         except KeyError:
-            btn.append([InlineKeyboardButton("𝐏𝐀𝐆𝐄", callback_data="pages"), InlineKeyboardButton(f"1/{math.ceil(int(total_results)/10)}",callback_data="pages"), InlineKeyboardButton("𝐍𝐄𝐗𝐓 ➪",callback_data=f"next_{message.from_user.id}_{key}_{offset}")])
+            await save_group_settings(message.chat.id, 'max_btn', True)
+            btn.append([
+                InlineKeyboardButton("𝐏𝐀𝐆𝐄", callback_data="pages"), 
+                InlineKeyboardButton(f"1/{math.ceil(int(total_results)/10)}", callback_data="pages"), 
+                InlineKeyboardButton("𝐍𝐄𝐗𝐓 ➪", callback_data=f"next_{req}_{key}_{offset}")
+            ])
     else:
         btn.append([InlineKeyboardButton("𝐍𝐎 𝐌𝐎𝐑𝐄 𝐏𝐀𝐆𝐄𝐒", callback_data="pages")])
 
-    # **SIMPLE FINAL MESSAGE - NO AUTO DELETE**
-    cap = f"<b>Results for: {search}\n\nRequested by: {message.from_user.mention}</b>"
-    await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn), parse_mode=enums.ParseMode.HTML)
+    # Create caption
+    imdb = await get_poster(search, file=(files[0])['file_name']) if settings.get("imdb", False) else None
+    cur_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
+    curr_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
+    time_difference = timedelta(hours=cur_time.hour, minutes=cur_time.minute, seconds=(cur_time.second+(cur_time.microsecond/1000000))) - timedelta(hours=curr_time.hour, minutes=curr_time.minute, seconds=(curr_time.second+(curr_time.microsecond/1000000)))
+    remaining_seconds = "{:.2f}".format(time_difference.total_seconds())
+    
+    TEMPLATE = script.IMDB_TEMPLATE_TXT
+    if imdb:
+        cap = TEMPLATE.format(
+            qurey=search, title=imdb['title'], votes=imdb['votes'], aka=imdb["aka"],
+            seasons=imdb["seasons"], box_office=imdb['box_office'], localized_title=imdb['localized_title'],
+            kind=imdb['kind'], imdb_id=imdb["imdb_id"], cast=imdb["cast"], runtime=imdb["runtime"],
+            countries=imdb["countries"], certificates=imdb["certificates"], languages=imdb["languages"],
+            director=imdb["director"], writer=imdb["writer"], producer=imdb["producer"],
+            composer=imdb["composer"], cinematographer=imdb["cinematographer"], music_team=imdb["music_team"],
+            distributors=imdb["distributors"], release_date=imdb['release_date'], year=imdb['year'],
+            genres=imdb['genres'], poster=imdb['poster'], plot=imdb['plot'], rating=imdb['rating'], url=imdb['url']
+        )
+        temp.IMDB_CAP[message.from_user.id] = cap
+        if not settings.get("button", True):
+            cap += "<b>\n\n<u>🍿 Your Movie Files 👇</u></b>\n"
+            for file in files:
+                cap += f"<b>\n📁 <a href='https://telegram.me/{temp.U_NAME}?start=files_{file['file_id']}'>[{get_size(file['file_size'])}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file['file_name'].split()))}\n</a></b>"
+    else:
+        cap = f"<b>Tʜᴇ Rᴇꜱᴜʟᴛꜱ Fᴏʀ ☞ {search}\n\nRᴇǫᴜᴇsᴛᴇᴅ Bʏ ☞ {message.from_user.mention}\n\nʀᴇsᴜʟᴛ sʜᴏᴡ ɪɴ ☞ {remaining_seconds} sᴇᴄᴏɴᴅs\n\nᴘᴏᴡᴇʀᴇᴅ ʙʏ ☞ : {message.chat.title}\n\n⚠️ ᴀꜰᴛᴇʀ 𝟓 ᴍɪɴᴜᴛᴇs ᴛʜɪs ᴍᴇssᴀɢᴇ ᴡɪʟʟ ʙᴇ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴅᴇʟᴇᴛᴇᴅ 🗑️</b>"
+        if not settings.get("button", True):
+            cap += "<b><u>🍿 Your Movie Files 👇</u></b>\n\n"
+            for file in files:
+                cap += f"<b>📁 <a href='https://telegram.me/{temp.U_NAME}?start=files_{file['file_id']}'>[{get_size(file['file_size'])}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file['file_name'].split()))}\n\n</a></b>"
 
+    # Send message & AUTO-DELETE AFTER 5 MINUTES (300 seconds)
+    result_msg = None
+    if imdb and imdb.get('poster'):
+        try:
+            result_msg = await message.reply_photo(photo=imdb.get('poster'), caption=cap, reply_markup=InlineKeyboardMarkup(btn))
+        except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
+            poster = imdb.get('poster').replace('.jpg', "._V1_UX360.jpg")
+            result_msg = await message.reply_photo(photo=poster, caption=cap, reply_markup=InlineKeyboardMarkup(btn))
+        except Exception as e:
+            logger.exception(e)
+            result_msg = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
+    else:
+        result_msg = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn), disable_web_page_preview=True)
+    
+    # **AUTO DELETE AFTER 5 MINUTES - ONLY RESULTS MESSAGE**
+    try:
+        if settings.get('auto_delete', True):  # Default: enabled
+            await asyncio.sleep(300)  # 5 minutes
+            await result_msg.delete()
+            # DON'T delete original user message
+    except KeyError:
+        await save_group_settings(message.chat.id, 'auto_delete', True)
+        await asyncio.sleep(300)
+        await result_msg.delete()
+    except Exception:
+        pass  # Ignore delete errors
 
 
 async def advantage_spell_chok(client, name, msg, reply_msg, vj_search):
@@ -3082,6 +3154,7 @@ async def global_filters(client, message, text=False):
                 break
     else:
         return False
+
 
 
 
