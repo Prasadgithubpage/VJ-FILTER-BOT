@@ -31,8 +31,19 @@ BUTTONS1 = {}
 BUTTONS2 = {}
 SPELL_CHECK = {}
 
-@Client.on_message(filters.group & filters.text & filters.incoming)
+@Client.on_message(filters.group & filters.text & filters.regex(r'(?i)^#request', re.IGNORECASE) & filters.incoming)
 async def give_filter(client, message):
+    # Extract clean query (everything after #request, remove "by author" parts)
+    text = message.text.strip()
+    query = text[8:].strip()
+    
+    # Remove everything after "by" if present
+    if 'by ' in query.lower():
+        query = query.split('by ', 1)[0].strip()
+    
+    if not query or len(query) < 2:
+        return  # Silent ignore invalid queries
+    
     if message.chat.id != SUPPORT_CHAT_ID:
         settings = await get_settings(message.chat.id)
         chatid = message.chat.id
@@ -49,7 +60,7 @@ async def give_filter(client, message):
                         ChatPermissions(can_send_messages=False)
                     )
                     await message.reply_text(
-                        text=f"👋 Hey Buddy {message.from_user.mention},\n\nPlease tap the below button & join the channel then come back here & click on done button. then just type your book title again and see the Magic. 👇",
+                        text=f"👋 Hey Buddy {message.from_user.mention},\n\nPlease tap the below button & join the channel then come back here & click on done button. then just type <code>#request book title</code> again and see the Magic. 👇",
                         reply_markup=InlineKeyboardMarkup(btn),
                         parse_mode=enums.ParseMode.HTML
                     )
@@ -63,23 +74,26 @@ async def give_filter(client, message):
             try:
                 if settings['auto_ffilter']:
                     ai_search = True
-                    reply_msg = await message.reply_text(f"<b><i>Searching For {message.text} 🔍</i></b>")
-                    await auto_filter(client, message.text, message, reply_msg, ai_search)
+                    reply_msg = await message.reply_text(f"<b><i>Searching For <code>{query}</code> 🔍</i></b>", parse_mode=enums.ParseMode.HTML)
+                    await auto_filter(client, query, message, reply_msg, ai_search)
+                    return  # Exit after auto_filter
             except KeyError:
                 grpid = await active_connection(str(message.from_user.id))
                 await save_group_settings(grpid, 'auto_ffilter', True)
                 settings = await get_settings(message.chat.id)
                 if settings['auto_ffilter']:
                     ai_search = True
-                    reply_msg = await message.reply_text(f"<b><i>Searching For {message.text} 🔍</i></b>")
-                    await auto_filter(client, message.text, message, reply_msg, ai_search)
-    else: #a better logic to avoid repeated lines of code in auto_filter function
-        search = message.text
-        temp_files, temp_offset, total_results = await get_search_results(chat_id=message.chat.id, query=search.lower(), offset=0, filter=True)
+                    reply_msg = await message.reply_text(f"<b><i>Searching For <code>{query}</code> 🔍</i></b>", parse_mode=enums.ParseMode.HTML)
+                    await auto_filter(client, query, message, reply_msg, ai_search)
+                    return  # Exit after auto_filter
+    else:
+        # Support chat - check results first, silent ignore if zero
+        search = query.lower()
+        temp_files, temp_offset, total_results = await get_search_results(chat_id=message.chat.id, query=search, offset=0, filter=True)
         if total_results == 0:
-            return
-        else:
-            return await message.reply_text(f"<b>Hᴇʏ {message.from_user.mention}, {str(total_results)} ʀᴇsᴜʟᴛs ᴀʀᴇ ғᴏᴜɴᴅ ɪɴ ᴍʏ ᴅᴀᴛᴀʙᴀsᴇ ғᴏʀ ʏᴏᴜʀ ᴏ̨ᴜᴇʀʏ {search}. \n\nTʜɪs ɪs ᴀ sᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ sᴏ ᴛʜᴀᴛ ʏᴏᴜ ᴄᴀɴ'ᴛ ɢᴇᴛ ғɪʟᴇs ғʀᴏᴍ ʜᴇʀᴇ...\n\nJᴏɪɴ ᴀɴᴅ Sᴇᴀʀᴄʜ Hᴇʀᴇ - {GRP_LNK}</b>")
+            return  # SILENT IGNORE - NO RESPONSE
+        # Only respond if results exist
+        return await message.reply_text(f"<b>Hᴇʏ {message.from_user.mention}, {str(total_results)} ʀᴇsᴜʟᴛs ᴀʀᴇ ғᴏᴜɴᴅ ɪɴ ᴍʏ ᴅᴀᴛᴀʙᴀsᴇ ғᴏʀ ʏᴏᴜʀ ᴏ̨ᴜᴇʀʏ <code>{query}</code>. \n\nTʜɪs ɪs ᴀ sᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ sᴏ ᴛʜᴀᴛ ʏᴏᴜ ᴄᴀɴ'ᴛ ɢᴇᴛ ғɪʟᴇs ғʀᴏᴍ ʜᴇʀᴇ...\n\nJᴏɪɴ ᴀɴᴅ Sᴇᴀʀᴄʜ Hᴇʀᴇ - {GRP_LNK}</b>", parse_mode=enums.ParseMode.HTML)
 
 @Client.on_message(filters.private & filters.text & filters.incoming)
 async def pm_text(bot, message):
@@ -3220,3 +3234,4 @@ async def global_filters(client, message, text=False):
                 break
     else:
         return False
+
