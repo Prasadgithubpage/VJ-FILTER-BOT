@@ -2565,16 +2565,11 @@ async def auto_filter(client, name, msg, reply_msg, ai_search, spoll=False):
     else:
         btn.append([InlineKeyboardButton("𝐍𝐎 𝐌𝐎𝐑𝐄 𝐏𝐀𝐆𝐄𝐒", callback_data="pages")])
 
-    # Create caption
+    # **SIMPLE CAPTION - NO TIME DISPLAY**
     imdb = await get_poster(search, file=(files[0])['file_name']) if settings.get("imdb", False) else None
-    cur_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
-    curr_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
-    time_difference = timedelta(hours=cur_time.hour, minutes=cur_time.minute, seconds=(cur_time.second+(cur_time.microsecond/1000000))) - timedelta(hours=curr_time.hour, minutes=curr_time.minute, seconds=(curr_time.second+(curr_time.microsecond/1000000)))
-    remaining_seconds = "{:.2f}".format(time_difference.total_seconds())
     
-    TEMPLATE = script.IMDB_TEMPLATE_TXT
     if imdb:
-        cap = TEMPLATE.format(
+        cap = script.IMDB_TEMPLATE_TXT.format(
             qurey=search, title=imdb['title'], votes=imdb['votes'], aka=imdb["aka"],
             seasons=imdb["seasons"], box_office=imdb['box_office'], localized_title=imdb['localized_title'],
             kind=imdb['kind'], imdb_id=imdb["imdb_id"], cast=imdb["cast"], runtime=imdb["runtime"],
@@ -2586,17 +2581,18 @@ async def auto_filter(client, name, msg, reply_msg, ai_search, spoll=False):
         )
         temp.IMDB_CAP[message.from_user.id] = cap
         if not settings.get("button", True):
-            cap += "<b>\n\n<u>🍿 Your Movie Files 👇</u></b>\n"
+            cap += "<b>\n\n<u>📚 Your Book Files 👇</u></b>\n"
             for file in files:
                 cap += f"<b>\n📁 <a href='https://telegram.me/{temp.U_NAME}?start=files_{file['file_id']}'>[{get_size(file['file_size'])}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file['file_name'].split()))}\n</a></b>"
     else:
-        cap = f"<b>Tʜᴇ Rᴇꜱᴜʟᴛꜱ Fᴏʀ ☞ {search}\n\nRᴇǫᴜᴇsᴛᴇᴅ Bʏ ☞ {message.from_user.mention}\n\nʀᴇsᴜʟᴛ sʜᴏᴡ ɪɴ ☞ {remaining_seconds} sᴇᴄᴏɴᴅs\n\nᴘᴏᴡᴇʀᴇᴅ ʙʏ ☞ : {message.chat.title}\n\n⚠️ ᴀꜰᴛᴇʀ 𝟓 ᴍɪɴᴜᴛᴇs ᴛʜɪs ᴍᴇssᴀɢᴇ ᴡɪʟʟ ʙᴇ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴅᴇʟᴇᴛᴇᴅ 🗑️</b>"
+        # **CLEAN CAPTION - NO TIME INFO**
+        cap = f"<b>Results for: <code>{search}</code>\n\nRequested by: {message.from_user.mention}</b>"
         if not settings.get("button", True):
-            cap += "<b><u>🍿 Your Movie Files 👇</u></b>\n\n"
+            cap += "<b><u>📚 Your Book Files 👇</u></b>\n\n"
             for file in files:
                 cap += f"<b>📁 <a href='https://telegram.me/{temp.U_NAME}?start=files_{file['file_id']}'>[{get_size(file['file_size'])}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file['file_name'].split()))}\n\n</a></b>"
 
-    # Send message & AUTO-DELETE AFTER 5 MINUTES (300 seconds)
+    # Send message
     result_msg = None
     if imdb and imdb.get('poster'):
         try:
@@ -2606,22 +2602,22 @@ async def auto_filter(client, name, msg, reply_msg, ai_search, spoll=False):
             result_msg = await message.reply_photo(photo=poster, caption=cap, reply_markup=InlineKeyboardMarkup(btn))
         except Exception as e:
             logger.exception(e)
-            result_msg = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn))
+            result_msg = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn), parse_mode=enums.ParseMode.HTML)
     else:
-        result_msg = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn), disable_web_page_preview=True)
+        result_msg = await message.reply_text(cap, reply_markup=InlineKeyboardMarkup(btn), parse_mode=enums.ParseMode.HTML, disable_web_page_preview=True)
     
-    # **AUTO DELETE AFTER 5 MINUTES - ONLY RESULTS MESSAGE**
+    # **AUTO DELETE AFTER 2 MINUTES (120 seconds)**
     try:
-        if settings.get('auto_delete', True):  # Default: enabled
-            await asyncio.sleep(300)  # 5 minutes
+        if settings.get('auto_delete', True):
+            await asyncio.sleep(120)  # 2 minutes
             await result_msg.delete()
-            # DON'T delete original user message
     except KeyError:
         await save_group_settings(message.chat.id, 'auto_delete', True)
-        await asyncio.sleep(300)
+        await asyncio.sleep(120)
         await result_msg.delete()
     except Exception:
-        pass  # Ignore delete errors
+        pass
+
 
 
 async def advantage_spell_chok(client, name, msg, reply_msg, vj_search):
@@ -3154,6 +3150,7 @@ async def global_filters(client, message, text=False):
                 break
     else:
         return False
+
 
 
 
